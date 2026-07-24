@@ -1,7 +1,7 @@
 {
 	"id": "discussion-hub",
 	"name": "Discussion Hub",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"minAppVersion": "1.10.0",
 	"description": "Shared multi-model AI discussions for compatible AI plugins.",
 	"author": "takeshy",
