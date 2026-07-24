@@ -6,9 +6,9 @@ Discussion Hub provides a shared multi-model discussion UI and orchestration for
 
 Supported integrations in this workspace:
 
-- LLM Hub
-- Gemini Helper
-- Local LLM Hub
+- [LLM Hub](https://github.com/takeshy/obsidian-llm-hub)
+- [Gemini Helper](https://github.com/takeshy/obsidian-gemini-helper)
+- [Local LLM Hub](https://github.com/takeshy/obsidian-local-llm-hub)
 
 ![Discussion setup](docs/images/ai-discussion-start.png)
 
