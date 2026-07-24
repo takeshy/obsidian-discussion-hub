@@ -6,9 +6,9 @@ Discussion Hub は、Obsidian で複数の AI モデルによる討論を行う�
 
 このワークスペースで対応している連携先：
 
-- LLM Hub
-- Gemini Helper
-- Local LLM Hub
+- [LLM Hub](https://github.com/takeshy/obsidian-llm-hub)
+- [Gemini Helper](https://github.com/takeshy/obsidian-gemini-helper)
+- [Local LLM Hub](https://github.com/takeshy/obsidian-local-llm-hub)
 
 ![討論のセットアップ](docs/images/ai-discussion-start.png)
 
