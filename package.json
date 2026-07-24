@@ -1,0 +1,21 @@
+{
+  "name": "obsidian-discussion-hub",
+  "version": "0.1.0",
+  "description": "Shared multi-model AI discussions for Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "test": "vitest run"
+  },
+  "keywords": ["obsidian", "ai", "discussion", "multi-model"],
+  "author": "takeshy",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.25.2",
+    "obsidian": "^1.10.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

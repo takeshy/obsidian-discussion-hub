@@ -1,0 +1,45 @@
+.discussion-hub-view { padding: 20px; overflow-y: auto; }
+.discussion-hub-subtitle { color: var(--text-muted); margin-top: -8px; }
+.discussion-hub-theme { width: 100%; min-height: 90px; margin: 12px 0; resize: vertical; }
+.discussion-hub-inline { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.discussion-hub-inline input[type="number"] { width: 72px; }
+.discussion-hub-hidden-input { display: none; }
+.discussion-hub-warning { padding: 10px 12px; margin: 10px 0; color: var(--text-warning); background: var(--background-secondary); border-radius: var(--radius-s); }
+.discussion-hub-warning button { margin-top: 8px; }
+.discussion-hub-attachments { display: flex; flex-wrap: wrap; gap: 6px; }
+.discussion-hub-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: var(--background-secondary); border-radius: 999px; }
+.discussion-hub-pill button { border: 0; box-shadow: none; padding: 0 2px; }
+.discussion-hub-section { margin-top: 18px; padding: 14px; background: var(--background-secondary); border-radius: var(--radius-m); }
+.discussion-hub-section h3 { margin-top: 0; }
+.discussion-hub-person { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(140px, 2fr) auto; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--background-modifier-border); }
+.discussion-hub-actions { display: flex; gap: 8px; margin-top: 18px; }
+.discussion-hub-status { font-weight: var(--font-semibold); margin-right: auto; }
+.discussion-hub-output h3 { margin-top: 20px; }
+.discussion-hub-card { padding: 12px; margin: 10px 0; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); }
+.discussion-hub-card h4 { margin: 0 0 8px; }
+.discussion-hub-card-content, .discussion-hub-card.is-winner { white-space: normal; }
+.discussion-hub-card-content > :first-child, .discussion-hub-card.is-winner > :first-child { margin-top: 0; }
+.discussion-hub-card-content > :last-child, .discussion-hub-card.is-winner > :last-child { margin-bottom: 0; }
+.discussion-hub-card.is-conclusion { border-color: var(--interactive-accent); }
+.discussion-hub-card.is-winner { border: 2px solid var(--interactive-accent); }
+
+.discussion-hub-settings .discussion-hub-prompt-setting {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+}
+.discussion-hub-settings .discussion-hub-prompt-setting .setting-item-info,
+.discussion-hub-settings .discussion-hub-prompt-setting .setting-item-control {
+  width: 100%;
+}
+.discussion-hub-settings .discussion-hub-prompt-setting .setting-item-control {
+  justify-content: stretch;
+}
+.discussion-hub-settings .discussion-hub-prompt-input {
+  box-sizing: border-box;
+  min-height: 120px;
+  resize: vertical;
+  width: 100%;
+}
+
+@media (max-width: 600px) { .discussion-hub-person { grid-template-columns: 1fr; } }

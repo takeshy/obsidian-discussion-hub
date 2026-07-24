@@ -1,0 +1,10 @@
+{
+  "id": "discussion-hub",
+  "name": "Discussion Hub",
+  "version": "0.1.0",
+  "minAppVersion": "1.10.0",
+  "description": "Shared multi-model AI discussions for Obsidian AI plugins.",
+  "author": "takeshy",
+  "authorUrl": "https://github.com/takeshy",
+  "isDesktopOnly": false
+}
