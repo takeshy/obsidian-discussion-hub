@@ -1,6 +1,6 @@
 {
   "name": "obsidian-discussion-hub",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shared multi-model AI discussions for Obsidian",
   "main": "main.js",
   "scripts": {
