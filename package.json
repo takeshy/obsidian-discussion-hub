@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
-    "test": "vitest run"
+    "test": "vitest run",
+    "preversion": "npm test && npm run build",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": ["obsidian", "ai", "discussion", "multi-model"],
   "author": "takeshy",
