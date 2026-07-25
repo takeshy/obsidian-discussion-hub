@@ -228,31 +228,52 @@ class DiscussionHubSettingTab extends PluginSettingTab {
     super(discussionPlugin.app, discussionPlugin);
   }
 
+  /** Render settings using the API available at the declared minimum version. */
   display(): void {
     this.containerEl.empty();
     this.containerEl.addClass("discussion-hub-settings");
-    new Setting(this.containerEl).setName("Default turns").addText((text) => text
+    this.renderDefaultTurns(this.containerEl);
+    this.renderOutputFolder(this.containerEl);
+    this.renderPrompt(this.containerEl, "systemPrompt", "System prompt");
+    this.renderPrompt(this.containerEl, "conclusionPrompt", "Conclusion prompt");
+    this.renderPrompt(this.containerEl, "votePrompt", "Vote prompt");
+    this.renderParticipantsInfo(this.containerEl);
+  }
+
+  private renderDefaultTurns(containerEl: HTMLElement): void {
+    new Setting(containerEl).setName("Default turns").addText((text) => text
       .setValue(String(this.discussionPlugin.settings.defaultTurns))
       .onChange(async (value) => {
         this.discussionPlugin.settings.defaultTurns = Math.max(1, Math.min(20, Number(value) || 2));
         await this.discussionPlugin.saveSettings();
       }));
-    new Setting(this.containerEl).setName("Output folder").addText((text) => text
+  }
+
+  private renderOutputFolder(containerEl: HTMLElement): void {
+    new Setting(containerEl).setName("Output folder").addText((text) => text
       .setValue(this.discussionPlugin.settings.outputFolder)
       .onChange(async (value) => { this.discussionPlugin.settings.outputFolder = value; await this.discussionPlugin.saveSettings(); }));
-    for (const [key, name] of [["systemPrompt", "System prompt"], ["conclusionPrompt", "Conclusion prompt"], ["votePrompt", "Vote prompt"]] as const) {
-      new Setting(this.containerEl)
-        .setClass("discussion-hub-prompt-setting")
-        .setName(name)
-        .addTextArea((text) => {
-          text.inputEl.addClass("discussion-hub-prompt-input");
-          text
-            .setValue(this.discussionPlugin.settings[key])
-            .onChange(async (value) => { this.discussionPlugin.settings[key] = value; await this.discussionPlugin.saveSettings(); });
-        });
-    }
+  }
+
+  private renderPrompt(
+    containerEl: HTMLElement,
+    key: "systemPrompt" | "conclusionPrompt" | "votePrompt",
+    name: string,
+  ): void {
+    new Setting(containerEl)
+      .setClass("discussion-hub-prompt-setting")
+      .setName(name)
+      .addTextArea((text) => {
+        text.inputEl.addClass("discussion-hub-prompt-input");
+        text
+          .setValue(this.discussionPlugin.settings[key])
+          .onChange(async (value) => { this.discussionPlugin.settings[key] = value; await this.discussionPlugin.saveSettings(); });
+      });
+  }
+
+  private renderParticipantsInfo(containerEl: HTMLElement): void {
     if (this.discussionPlugin.settings.participants.length === 0) {
-      this.containerEl.createEl("p", { text: "Participants are configured in the Discussion Hub view after an AI provider connects." });
+      containerEl.createEl("p", { text: "Participants are configured in the Discussion Hub view after an AI provider connects." });
     }
   }
 }
