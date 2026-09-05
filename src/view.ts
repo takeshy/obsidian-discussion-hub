@@ -293,7 +293,8 @@ export class DiscussionView extends ItemView {
           + " If you conclude that you are not, name the wolf and bring the other players with you."
           + "\n\nYou are playing as your own model, against the others. Play to win: your model's reputation is on the line.",
         conclusionPrompt: "Name the player you suspect is the Keyword Wolf and briefly explain your reasoning.",
-        votePrompt: "Vote for the player you believe is the Keyword Wolf. If you have concluded that you are the wolf yourself, vote for yourself.",
+        votePrompt: "Vote for the player you believe is the Keyword Wolf. If you have concluded that you are the wolf yourself, vote for yourself."
+          + " In your reason, also say what you think that player's keyword is — or, if you are voting for yourself, what you think everyone else's keyword is.",
         activityMode: "keyword-wolf",
       };
     }
@@ -514,7 +515,7 @@ class UserInputModal extends Modal {
         for (const candidate of this.request.candidates ?? []) dropdown.addOption(candidate.id, candidate.displayName);
         dropdown.onChange((value) => { selected = value; });
       });
-      this.addResponseArea("Reason", (value) => { reason = value; });
+      this.addResponseArea("Reason", (value) => { reason = value; }, this.request.reasonHint);
       new Setting(this.contentEl).addButton((button) => button.setButtonText("Submit vote").setCta().onClick(() => {
         this.settled = true; this.resolveInput({ content: "", votedForId: selected, reason }); this.close();
       }));
@@ -537,10 +538,12 @@ class UserInputModal extends Modal {
     }
   }
 
-  private addResponseArea(name: string, onChange: (value: string) => void): void {
-    new Setting(this.contentEl)
+  private addResponseArea(name: string, onChange: (value: string) => void, description?: string): void {
+    const setting = new Setting(this.contentEl)
       .setClass("discussion-hub-user-input-setting")
-      .setName(name)
+      .setName(name);
+    if (description) setting.setDesc(description);
+    setting
       .addTextArea((text) => {
         text.inputEl.rows = 6;
         text.inputEl.addClass("discussion-hub-user-input");

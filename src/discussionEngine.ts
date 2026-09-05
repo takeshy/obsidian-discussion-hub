@@ -24,6 +24,7 @@ export interface UserInputRequest {
   candidates?: Array<{ id: string; displayName: string }>;
   targetDisplayName?: string;
   question?: string;
+  reasonHint?: string;
 }
 
 export interface UserInputResponse {
@@ -366,6 +367,7 @@ export class DiscussionEngine {
         type: "vote",
         participantId: voter.id,
         displayName: voter.displayName,
+        reasonHint: this.settings.votePrompt,
         candidates: [
           ...conclusions.map((item) => ({ id: item.participantId, displayName: item.displayName })),
           ...(this.settings.allowDrawVote ? [{ id: DRAW_VOTE_ID, displayName: "Draw" }] : []),
