@@ -2,12 +2,16 @@ import { FuzzySuggestModal, ItemView, MarkdownRenderer, Modal, Notice, Setting, 
 import type DiscussionHubPlugin from "./plugin";
 import type { RegisteredDiscussionModel } from "./plugin";
 import type { UserInputRequest, UserInputResponse } from "./discussionEngine";
+import { KEYWORD_WOLF_PAIRS, randomKeywordWolfPair } from "./keywordWolfPairs";
 import {
   USER_MODEL_ID,
   USER_PROVIDER_ID,
+  type ActivityMode,
   type DiscussionAttachment,
   type DiscussionParticipant,
   type DiscussionResult,
+  type DiscussionRunSettings,
+  type DiscussionVoteResult,
   type DiscussionVoter,
   type OpenDiscussionRequest,
 } from "./types";
@@ -46,6 +50,10 @@ async function readAttachment(file: File): Promise<DiscussionAttachment> {
 
 export class DiscussionView extends ItemView {
   private theme = "";
+  private activityMode: ActivityMode = "discussion";
+  private majorityKeyword = "";
+  private minorityKeyword = "";
+  private keywordSource: "random" | "custom" = "random";
   private attachments: DiscussionAttachment[] = [];
   private running = false;
   private stopCurrent: (() => void) | null = null;
@@ -98,37 +106,76 @@ export class DiscussionView extends ItemView {
       };
     }
 
-    const themeArea = root.createEl("textarea", { cls: "discussion-hub-theme", attr: { placeholder: "Discussion theme" } });
-    themeArea.value = this.theme;
-    themeArea.addEventListener("input", () => { this.theme = themeArea.value; });
+    const modeRow = root.createDiv({ cls: "discussion-hub-inline" });
+    modeRow.createEl("label", { text: "Activity" });
+    const mode = modeRow.createEl("select");
+    mode.createEl("option", { value: "discussion", text: "Discussion" });
+    mode.createEl("option", { value: "riddle", text: "Riddle & mystery" });
+    mode.createEl("option", { value: "keyword-wolf", text: "Keyword Wolf" });
+    mode.value = this.activityMode;
+    mode.onchange = () => { this.activityMode = mode.value as ActivityMode; void this.render(); };
+
+    if (this.activityMode === "keyword-wolf") {
+      const sourceRow = root.createDiv({ cls: "discussion-hub-inline" });
+      sourceRow.createEl("label", { text: "Keywords" });
+      const source = sourceRow.createEl("select");
+      source.createEl("option", { value: "random", text: `Random (${KEYWORD_WOLF_PAIRS.length} bundled pairs)` });
+      source.createEl("option", { value: "custom", text: "Custom" });
+      source.value = this.keywordSource;
+      source.onchange = () => { this.keywordSource = source.value as "random" | "custom"; void this.render(); };
+      if (this.keywordSource === "custom") {
+        const keywords = root.createDiv({ cls: "discussion-hub-keywords" });
+        const majority = keywords.createEl("input", { type: "text", attr: { placeholder: "Majority keyword" } });
+        majority.value = this.majorityKeyword;
+        majority.oninput = () => { this.majorityKeyword = majority.value; };
+        const minority = keywords.createEl("input", { type: "text", attr: { placeholder: "Wolf keyword" } });
+        minority.value = this.minorityKeyword;
+        minority.oninput = () => { this.minorityKeyword = minority.value; };
+      }
+      root.createEl("p", { cls: "discussion-hub-subtitle", text: "One random player receives the wolf keyword. Every player, including You, sees only their own keyword." });
+    } else {
+      const placeholder = this.activityMode === "riddle"
+        ? "Enter a riddle, mystery, case, situation, or logic problem…"
+        : "Discussion theme";
+      const themeArea = root.createEl("textarea", { cls: "discussion-hub-theme", attr: { placeholder } });
+      themeArea.value = this.theme;
+      themeArea.addEventListener("input", () => { this.theme = themeArea.value; });
+    }
 
     const turnRow = root.createDiv({ cls: "discussion-hub-inline" });
     turnRow.createEl("label", { text: "Turns" });
     const turnsInput = turnRow.createEl("input", { type: "number", attr: { min: "1", max: "20" } });
-    turnsInput.value = String(this.discussionPlugin.settings.defaultTurns);
+    // A riddle is solved in one collaborative pass, so it does not need the usual back-and-forth.
+    turnsInput.value = String(this.activityMode === "riddle" ? 1 : this.discussionPlugin.settings.defaultTurns);
 
-    const attachButton = turnRow.createEl("button", { text: "Attach files" });
-    const fileInput = turnRow.createEl("input", { type: "file", attr: { multiple: "true" } });
-    fileInput.addClass("discussion-hub-hidden-input");
-    attachButton.onclick = () => fileInput.click();
-    fileInput.onchange = async () => {
-      for (const file of Array.from(fileInput.files ?? [])) {
-        if (file.size > 20 * 1024 * 1024) { new Notice(`${file.name} exceeds 20 MB.`); continue; }
-        this.attachments.push(await readAttachment(file));
-      }
-      void this.render();
-    };
-    if (this.attachments.length > 0) {
-      const list = root.createDiv({ cls: "discussion-hub-attachments" });
-      for (const [index, attachment] of this.attachments.entries()) {
-        const pill = list.createSpan({ cls: "discussion-hub-pill", text: attachment.name });
-        const remove = pill.createEl("button", { text: "×", attr: { "aria-label": `Remove ${attachment.name}` } });
-        remove.onclick = () => { this.attachments.splice(index, 1); void this.render(); };
+    if (this.activityMode !== "keyword-wolf") {
+      const attachButton = turnRow.createEl("button", { text: "Attach files" });
+      const fileInput = turnRow.createEl("input", { type: "file", attr: { multiple: "true" } });
+      fileInput.addClass("discussion-hub-hidden-input");
+      attachButton.onclick = () => fileInput.click();
+      fileInput.onchange = async () => {
+        for (const file of Array.from(fileInput.files ?? [])) {
+          if (file.size > 20 * 1024 * 1024) { new Notice(`${file.name} exceeds 20 MB.`); continue; }
+          this.attachments.push(await readAttachment(file));
+        }
+        void this.render();
+      };
+      if (this.attachments.length > 0) {
+        const list = root.createDiv({ cls: "discussion-hub-attachments" });
+        for (const [index, attachment] of this.attachments.entries()) {
+          const pill = list.createSpan({ cls: "discussion-hub-pill", text: attachment.name });
+          const remove = pill.createEl("button", { text: "×", attr: { "aria-label": `Remove ${attachment.name}` } });
+          remove.onclick = () => { this.attachments.splice(index, 1); void this.render(); };
+        }
       }
     }
 
     this.renderPeopleSection(root, "Discussion participants", this.discussionPlugin.settings.participants, models, false);
-    this.renderPeopleSection(root, "Vote participants", this.discussionPlugin.settings.voters, models, true);
+    if (this.activityMode === "discussion") {
+      this.renderPeopleSection(root, "Vote participants", this.discussionPlugin.settings.voters, models, true);
+    } else if (this.activityMode === "keyword-wolf") {
+      root.createEl("p", { cls: "discussion-hub-voter-note", text: "Everyone except the Keyword Wolf votes." });
+    }
 
     const actions = root.createDiv({ cls: "discussion-hub-actions" });
     const start = actions.createEl("button", { cls: "mod-cta", text: "Start discussion" });
@@ -192,10 +239,54 @@ export class DiscussionView extends ItemView {
   }
 
   private async start(turns: number): Promise<void> {
-    const theme = this.theme.trim();
-    if (!theme) { new Notice("Enter a discussion theme."); return; }
+    let theme = this.theme.trim();
+    if (this.activityMode === "keyword-wolf") {
+      if (this.keywordSource === "custom" && (!this.majorityKeyword.trim() || !this.minorityKeyword.trim())) { new Notice("Enter both Keyword Wolf keywords."); return; }
+      theme = "Keyword Wolf";
+    } else if (!theme) { new Notice("Enter a discussion theme."); return; }
     if (this.discussionPlugin.settings.participants.length === 0) { new Notice("Add at least one participant."); return; }
-    if (this.discussionPlugin.settings.voters.length === 0) { new Notice("Add at least one voter."); return; }
+    if (this.activityMode === "discussion" && this.discussionPlugin.settings.voters.length === 0) { new Notice("Add at least one voter."); return; }
+    if (this.activityMode === "keyword-wolf" && this.discussionPlugin.settings.participants.length < 2) { new Notice("Keyword Wolf needs at least two participants."); return; }
+
+    let participants = this.discussionPlugin.settings.participants.map((item) => ({ ...item }));
+    let voters = this.discussionPlugin.settings.voters.map((item) => ({ ...item }));
+    let settings: DiscussionRunSettings = { ...this.discussionPlugin.settings, activityMode: this.activityMode };
+    let keywordWolfReveal = "";
+    if (this.activityMode === "riddle") {
+      settings = {
+        ...settings,
+        enableVoting: false,
+        systemPrompt: `${settings.systemPrompt}\nWork together to solve the riddle, mystery, case, situation, or logic problem. Separate facts from hypotheses and examine clues, contradictions, and alternatives.`,
+        conclusionPrompt: "State your final answer or theory, explain how the key clues support it, and identify anything still uncertain.",
+      };
+    } else if (this.activityMode === "keyword-wolf") {
+      const selectedPair = this.keywordSource === "random"
+        ? randomKeywordWolfPair()
+        : { majority: this.majorityKeyword.trim(), wolf: this.minorityKeyword.trim() };
+      const wolfIndex = Math.floor(Math.random() * participants.length);
+      participants = participants.map((participant, index) => ({
+        ...participant,
+        role: `${participant.role ? `${participant.role}\n` : ""}${index === wolfIndex ? "You are the Keyword Wolf." : "You are a majority player."} Your secret keyword: ${index === wolfIndex ? selectedPair.wolf : selectedPair.majority}. Never say it verbatim. Give subtle clues${index === wolfIndex ? " and avoid being identified" : " and identify the Keyword Wolf"}.`,
+      }));
+      voters = participants.filter((_, index) => index !== wolfIndex).map((participant) => ({
+        id: `keyword-wolf-voter-${participant.id}`,
+        providerId: participant.providerId,
+        modelId: participant.modelId,
+        displayName: participant.displayName,
+        privateInstruction: participant.role,
+        excludedParticipantId: participant.id,
+      }));
+      keywordWolfReveal = `Majority keyword: ${selectedPair.majority}. The Keyword Wolf was ${participants[wolfIndex].displayName} (keyword: ${selectedPair.wolf}).`;
+      settings = {
+        ...settings,
+        enableVoting: true,
+        allowDrawVote: false,
+        systemPrompt: "You are playing Keyword Wolf. Never reveal your secret keyword verbatim. Give subtle clues and identify the minority player.",
+        conclusionPrompt: "Name the player you suspect is the Keyword Wolf and briefly explain your reasoning.",
+        votePrompt: "Vote for the participant you believe is the Keyword Wolf.",
+        activityMode: "keyword-wolf",
+      };
+    }
 
     this.running = true;
     const root = this.contentEl;
@@ -207,15 +298,21 @@ export class DiscussionView extends ItemView {
     const stop = toolbar.createEl("button", { text: "Stop" });
     const output = root.createDiv({ cls: "discussion-hub-output" });
     const cards = new Map<string, HTMLElement>();
-    const engine = this.discussionPlugin.createEngine(this.attachments);
-    this.stopCurrent = () => engine.stop();
+    const pendingPrompts = new Set<() => void>();
+    let currentTurn = 0;
+    const engine = this.discussionPlugin.createEngine(this.attachments, settings);
+    // Stopping has to release anything waiting on the user, or the run would hang on an unanswered prompt.
+    this.stopCurrent = () => {
+      engine.stop();
+      for (const cancel of [...pendingPrompts]) cancel();
+    };
     stop.onclick = this.stopCurrent;
-    const streamCard = (participantId: string, content: string, conclusion: boolean) => {
-      const key = `${conclusion ? "conclusion" : "response"}:${participantId}`;
+    const streamCard = (participantId: string, content: string, conclusion: boolean, turnNumber = currentTurn) => {
+      const key = `${conclusion ? "conclusion" : `turn-${turnNumber}`}:${participantId}`;
       let card = cards.get(key);
       if (!card) {
         card = output.createDiv({ cls: `discussion-hub-card${conclusion ? " is-conclusion" : ""}` });
-        const person = this.discussionPlugin.settings.participants.find((item) => item.id === participantId);
+        const person = participants.find((item) => item.id === participantId);
         card.createEl("h4", { text: `${conclusion ? "Conclusion — " : ""}${person?.displayName || participantId}` });
         card.createEl("div", { cls: "discussion-hub-card-content" });
         cards.set(key, card);
@@ -223,15 +320,29 @@ export class DiscussionView extends ItemView {
       const contentEl = card.querySelector<HTMLElement>(".discussion-hub-card-content");
       if (contentEl) this.renderMarkdown(contentEl, content);
     };
+    let voteHeading: HTMLElement | null = null;
+    const showVote = (vote: DiscussionVoteResult) => {
+      if (!voteHeading) voteHeading = output.createEl("h3", { text: "Voting results" });
+      output.createEl("p", { text: `${vote.voterDisplayName} → ${vote.votedForDisplayName}${vote.reason ? `: ${vote.reason}` : ""}` });
+    };
     engine.setCallbacks({
       onPhaseChange: (phase) => status.setText(phase[0].toUpperCase() + phase.slice(1)),
-      onTurnStart: (turn) => output.createEl("h3", { text: `Turn ${turn}` }),
+      onTurnStart: (turn) => {
+        currentTurn = turn;
+        output.createEl("h3", { text: `Turn ${turn}` });
+      },
       onResponseStream: (participantId, content) => streamCard(participantId, content, false),
+      onTurnComplete: (turn) => {
+        for (const response of turn.responses) streamCard(response.participantId, response.content || `[Error: ${response.error || "No response"}]`, false, turn.turnNumber);
+      },
       onConclusionStream: (participantId, content) => streamCard(participantId, content, true),
-      onUserInputRequest: (request) => new Promise((resolve) => new UserInputModal(this.app, request, resolve).open()),
+      onConclusionComplete: (conclusion) => streamCard(conclusion.participantId, conclusion.content, true),
+      onVoteComplete: showVote,
+      onUserInputRequest: (request) => this.waitForUserAction(output, request, pendingPrompts),
     });
     try {
-      const result = await engine.run(theme, turns, this.discussionPlugin.settings.participants, this.discussionPlugin.settings.voters);
+      const result = await engine.run(theme, turns, participants, voters);
+      result.keywordWolfReveal = keywordWolfReveal || undefined;
       this.renderResult(output, result);
       stop.setText("Save as note");
       stop.onclick = () => void this.discussionPlugin.saveResult(result).then(async (file) => {
@@ -249,13 +360,64 @@ export class DiscussionView extends ItemView {
   }
 
   private renderResult(output: HTMLElement, result: DiscussionResult): void {
-    output.createEl("h3", { text: "Voting results" });
-    for (const vote of result.votes) output.createEl("p", { text: `${vote.voterDisplayName} → ${vote.votedForDisplayName}${vote.reason ? `: ${vote.reason}` : ""}` });
-    output.createEl("h3", { text: result.isDraw ? "Draw" : result.winnerId ? "Winner" : "No winner" });
+    // Individual votes are already on screen; onVoteComplete renders them as they arrive.
+    if (result.votes.length > 0) {
+      if (result.activityMode === "keyword-wolf") {
+        output.createEl("h3", { text: "Most suspected" });
+        const suspected = result.winnerIds
+          .map((id) => result.participants.find((participant) => participant.id === id)?.displayName)
+          .filter((name): name is string => Boolean(name));
+        output.createEl("p", { text: suspected.length > 0 ? suspected.join(" / ") : "No valid vote" });
+      } else {
+        output.createEl("h3", { text: result.isDraw ? "Draw" : result.winnerId ? "Winner" : "No winner" });
+      }
+    }
+    if (result.keywordWolfReveal) output.createDiv({ cls: "discussion-hub-reveal", text: result.keywordWolfReveal });
+    if (result.votes.length === 0 || result.activityMode === "keyword-wolf") return;
     if (result.finalConclusion) {
       const winner = output.createDiv({ cls: "discussion-hub-card is-winner" });
       this.renderMarkdown(winner, result.finalConclusion, 0);
     }
+  }
+
+  private waitForUserAction(output: HTMLElement, request: UserInputRequest, pendingPrompts: Set<() => void>): Promise<UserInputResponse> {
+    return new Promise((resolve) => {
+      const prompt = output.createDiv({ cls: "discussion-hub-user-action" });
+      const label = request.type === "question"
+        ? request.candidates?.length
+          ? "Your turn: choose someone and ask a question"
+          : `Your turn: ask ${request.targetDisplayName || "everyone else"}`
+        : request.type === "answer"
+          ? `Your turn: answer ${request.targetDisplayName || "the question"}`
+          : request.type === "vote" ? "Your turn: vote" : "Your turn: respond";
+      prompt.createSpan({ text: label });
+      if (request.type === "answer" && request.question) {
+        prompt.createEl("blockquote", { text: request.question });
+      }
+      const buttonText = request.type === "question" ? request.candidates?.length ? "Choose and ask" : "Ask"
+        : request.type === "answer" ? "Answer"
+          : request.type === "vote" ? "Vote" : "Respond";
+      const open = prompt.createEl("button", { cls: "mod-cta", text: buttonText });
+      let modal: UserInputModal | null = null;
+      const settle = (value: UserInputResponse) => {
+        pendingPrompts.delete(cancel);
+        prompt.remove();
+        resolve(value);
+      };
+      const cancel = () => { modal?.close(); settle({ content: "" }); };
+      pendingPrompts.add(cancel);
+      open.onclick = () => {
+        open.disabled = true;
+        modal = new UserInputModal(this.app, request, (value) => {
+          if (value.cancelled) {
+            open.disabled = false;
+            return;
+          }
+          settle(value);
+        });
+        modal.open();
+      };
+    });
   }
 
   private renderMarkdown(target: HTMLElement, markdown: string, delay = 60): void {
@@ -292,7 +454,7 @@ class ModelPickerModal extends FuzzySuggestModal<ModelPickerItem> {
 
   getItemText(item: ModelPickerItem): string {
     const id = item.modelId === item.displayName ? "" : ` (${item.modelId})`;
-    return `${item.providerName} — ${item.displayName}${id}`;
+    return `${item.displayName}${id}`;
   }
 
   onChooseItem(item: ModelPickerItem): void {
@@ -310,7 +472,14 @@ class UserInputModal extends Modal {
   ) { super(app); }
 
   onOpen(): void {
-    this.titleEl.setText(this.request.type === "vote" ? `${this.request.displayName}: cast your vote` : `${this.request.displayName}: your turn`);
+    this.titleEl.setText(
+      this.request.type === "vote" ? `${this.request.displayName}: cast your vote`
+        : this.request.type === "question" ? this.request.candidates?.length
+          ? `${this.request.displayName}: choose someone to ask`
+          : `${this.request.displayName}: ask ${this.request.targetDisplayName}`
+          : this.request.type === "answer" ? `${this.request.displayName}: answer ${this.request.targetDisplayName}`
+            : `${this.request.displayName}: your turn`,
+    );
     if (this.request.type === "vote") {
       let selected = this.request.candidates?.[0]?.id || "";
       let reason = "";
@@ -318,20 +487,41 @@ class UserInputModal extends Modal {
         for (const candidate of this.request.candidates ?? []) dropdown.addOption(candidate.id, candidate.displayName);
         dropdown.onChange((value) => { selected = value; });
       });
-      new Setting(this.contentEl).setName("Reason").addTextArea((text) => text.onChange((value) => { reason = value; }));
+      this.addResponseArea("Reason", (value) => { reason = value; });
       new Setting(this.contentEl).addButton((button) => button.setButtonText("Submit vote").setCta().onClick(() => {
         this.settled = true; this.resolveInput({ content: "", votedForId: selected, reason }); this.close();
       }));
     } else {
       let content = "";
-      new Setting(this.contentEl).setName(this.request.role ? `Role: ${this.request.role}` : "Response").addTextArea((text) => text.onChange((value) => { content = value; }));
+      let targetId = this.request.candidates?.[0]?.id;
+      if (this.request.type === "answer" && this.request.question) {
+        this.contentEl.createEl("blockquote", { text: this.request.question });
+      }
+      if (this.request.type === "question" && this.request.candidates?.length) {
+        new Setting(this.contentEl).setName("Ask").addDropdown((dropdown) => {
+          for (const candidate of this.request.candidates ?? []) dropdown.addOption(candidate.id, candidate.displayName);
+          dropdown.onChange((value) => { targetId = value; });
+        });
+      }
+      this.addResponseArea(this.request.role ? `Role: ${this.request.role}` : "Response", (value) => { content = value; });
       new Setting(this.contentEl).addButton((button) => button.setButtonText("Submit").setCta().onClick(() => {
-        this.settled = true; this.resolveInput({ content }); this.close();
+        this.settled = true; this.resolveInput({ content, targetId }); this.close();
       }));
     }
   }
 
+  private addResponseArea(name: string, onChange: (value: string) => void): void {
+    new Setting(this.contentEl)
+      .setClass("discussion-hub-user-input-setting")
+      .setName(name)
+      .addTextArea((text) => {
+        text.inputEl.rows = 6;
+        text.inputEl.addClass("discussion-hub-user-input");
+        text.onChange(onChange);
+      });
+  }
+
   onClose(): void {
-    if (!this.settled) this.resolveInput({ content: "" });
+    if (!this.settled) this.resolveInput({ content: "", cancelled: true });
   }
 }

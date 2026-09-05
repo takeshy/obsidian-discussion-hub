@@ -11,6 +11,7 @@ import {
   type DiscussionParticipant,
   type DiscussionProviderIntegration,
   type DiscussionResult,
+  type DiscussionRunSettings,
   type DiscussionVoter,
   type OpenDiscussionRequest,
   type RunDiscussionRequest,
@@ -130,8 +131,8 @@ export default class DiscussionHubPlugin extends Plugin implements DiscussionHub
     if (view instanceof DiscussionView) view.setDraft(request);
   }
 
-  createEngine(attachments: DiscussionAttachment[] = []): DiscussionEngine {
-    return new DiscussionEngine((id) => this.integrations.get(id), this.settings, {
+  createEngine(attachments: DiscussionAttachment[] = [], settings: DiscussionRunSettings = this.settings): DiscussionEngine {
+    return new DiscussionEngine((id) => this.integrations.get(id), settings, {
       attachments,
       referenceContext: this.referenceContext(attachments),
     });
@@ -237,6 +238,13 @@ class DiscussionHubSettingTab extends PluginSettingTab {
     this.renderPrompt(this.containerEl, "systemPrompt", "System prompt");
     this.renderPrompt(this.containerEl, "conclusionPrompt", "Conclusion prompt");
     this.renderPrompt(this.containerEl, "votePrompt", "Vote prompt");
+    new Setting(this.containerEl)
+      .setName("Allow draw votes")
+      .setDesc("Allow voters to explicitly choose a draw.")
+      .addToggle((toggle) => toggle.setValue(this.discussionPlugin.settings.allowDrawVote).onChange(async (value) => {
+        this.discussionPlugin.settings.allowDrawVote = value;
+        await this.discussionPlugin.saveSettings();
+      }));
     this.renderParticipantsInfo(this.containerEl);
   }
 

@@ -1,4 +1,5 @@
 export type DiscussionRole = "user" | "assistant";
+export type ActivityMode = "discussion" | "riddle" | "keyword-wolf";
 
 export interface DiscussionAttachment {
   name: string;
@@ -62,6 +63,8 @@ export interface DiscussionParticipant extends DiscussionProviderRef {
 export interface DiscussionVoter extends DiscussionProviderRef {
   id: string;
   displayName: string;
+  privateInstruction?: string;
+  excludedParticipantId?: string;
 }
 
 export interface DiscussionResponse {
@@ -106,6 +109,8 @@ export interface DiscussionResult {
   endTime: number;
   participants: DiscussionParticipant[];
   voters: DiscussionVoter[];
+  activityMode?: ActivityMode;
+  keywordWolfReveal?: string;
 }
 
 export interface DiscussionSettings {
@@ -116,6 +121,13 @@ export interface DiscussionSettings {
   defaultTurns: number;
   participants: DiscussionParticipant[];
   voters: DiscussionVoter[];
+  allowDrawVote: boolean;
+}
+
+/** Saved settings plus the overrides an activity applies to a single run. Never persisted. */
+export interface DiscussionRunSettings extends DiscussionSettings {
+  enableVoting?: boolean;
+  activityMode?: ActivityMode;
 }
 
 export interface DiscussionHubSettings extends DiscussionSettings {
@@ -145,5 +157,6 @@ export const DEFAULT_SETTINGS: DiscussionHubSettings = {
   defaultTurns: 2,
   participants: [],
   voters: [],
+  allowDrawVote: true,
   importedLegacyProviders: [],
 };

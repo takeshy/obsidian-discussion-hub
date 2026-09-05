@@ -22,6 +22,17 @@
 .discussion-hub-card-content > :last-child, .discussion-hub-card.is-winner > :last-child { margin-bottom: 0; }
 .discussion-hub-card.is-conclusion { border-color: var(--interactive-accent); }
 .discussion-hub-card.is-winner { border: 2px solid var(--interactive-accent); }
+.discussion-hub-keywords { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.discussion-hub-reveal { margin: 16px 0; padding: 12px; border: 2px solid var(--interactive-accent); border-radius: var(--radius-m); text-align: center; font-weight: var(--font-semibold); }
+.discussion-hub-voter-note { margin: 14px 0; padding: 10px 12px; color: var(--text-muted); background: var(--background-secondary); border-radius: var(--radius-s); }
+.discussion-hub-user-input-setting { align-items: stretch; flex-direction: column; gap: 8px; }
+.discussion-hub-user-input-setting .setting-item-info,
+.discussion-hub-user-input-setting .setting-item-control { width: 100%; }
+.discussion-hub-user-input-setting .setting-item-control { justify-content: stretch; }
+.discussion-hub-user-input { box-sizing: border-box; min-height: 140px; width: 100%; resize: vertical; }
+.discussion-hub-user-action { position: sticky; bottom: 10px; z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 0; padding: 12px; border: 2px solid var(--interactive-accent); border-radius: var(--radius-m); background: var(--background-primary); box-shadow: var(--shadow-s); }
+.discussion-hub-user-action > span { flex: 1; min-width: 180px; font-weight: var(--font-semibold); }
+.discussion-hub-user-action blockquote { flex-basis: 100%; margin: 4px 0; }
 
 .discussion-hub-settings .discussion-hub-prompt-setting {
   align-items: stretch;
@@ -42,4 +53,4 @@
   width: 100%;
 }
 
-@media (max-width: 600px) { .discussion-hub-person { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .discussion-hub-person, .discussion-hub-keywords { grid-template-columns: 1fr; } }
