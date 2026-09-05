@@ -1,6 +1,6 @@
 {
   "name": "obsidian-discussion-hub",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Shared multi-model AI discussions for Obsidian",
   "main": "main.js",
   "scripts": {
@@ -10,7 +10,12 @@
     "preversion": "npm test && npm run build",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
-  "keywords": ["obsidian", "ai", "discussion", "multi-model"],
+  "keywords": [
+    "obsidian",
+    "ai",
+    "discussion",
+    "multi-model"
+  ],
   "author": "takeshy",
   "license": "MIT",
   "devDependencies": {
