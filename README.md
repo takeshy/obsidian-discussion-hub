@@ -55,7 +55,8 @@ A social deduction game. Every player is given a secret keyword; one randomly ch
 
 - Keywords come from 225 bundled pairs, or from a custom pair you type in.
 - In each round every player asks a question and the others answer. When there is more than one round, the final round is a one-on-one interrogation: each player picks a single opponent to question.
-- Every player votes for whoever they suspect, the wolf included. Nobody can vote for themselves, and the draw option does not apply.
+- Every player votes for whoever they suspect, the wolf included, and may vote for themselves — naming yourself is how you claim you worked out that you are the wolf. The draw option does not apply.
+- The wolf wins outright when it names itself and no other player names it. Being named by someone else makes a self-vote count for nothing, and the wolf loses once every other player names it. The verdict is shown with the reveal and kept in the saved note.
 - The keywords and the wolf's identity are revealed once the vote is in, and are included in the saved note.
 - Requires at least two participants. Voters are derived automatically, so the Vote participants list is not used.
 

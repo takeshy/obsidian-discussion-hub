@@ -361,20 +361,17 @@ export class DiscussionEngine {
 
   private async vote(voter: DiscussionVoter, prompt: string, conclusions: DiscussionConclusion[]): Promise<DiscussionVoteResult> {
     let result: DiscussionVoteResult;
-    const eligibleConclusions = voter.excludedParticipantId
-      ? conclusions.filter((item) => item.participantId !== voter.excludedParticipantId)
-      : conclusions;
     if (isUser(voter)) {
       const input = await this.requestUserInput({
         type: "vote",
         participantId: voter.id,
         displayName: voter.displayName,
         candidates: [
-          ...eligibleConclusions.map((item) => ({ id: item.participantId, displayName: item.displayName })),
+          ...conclusions.map((item) => ({ id: item.participantId, displayName: item.displayName })),
           ...(this.settings.allowDrawVote ? [{ id: DRAW_VOTE_ID, displayName: "Draw" }] : []),
         ],
       });
-      const candidate = eligibleConclusions.find((item) => item.participantId === input?.votedForId);
+      const candidate = conclusions.find((item) => item.participantId === input?.votedForId);
       const drawVote = this.settings.allowDrawVote && input?.votedForId === DRAW_VOTE_ID;
       result = {
         voterId: voter.id,
@@ -385,17 +382,17 @@ export class DiscussionEngine {
       };
     } else {
       try {
-        const self = voter.excludedParticipantId
-          ? conclusions.find((item) => item.participantId === voter.excludedParticipantId)?.displayName
+        const self = voter.selfParticipantId
+          ? conclusions.find((item) => item.participantId === voter.selfParticipantId)?.displayName
           : undefined;
-        const candidateList = eligibleConclusions
+        const candidateList = conclusions
           .map((candidate, index) => `CANDIDATE_${index + 1}: ${candidate.displayName}`)
           .join("\n");
-        const voterPrompt = `${prompt}${self ? `\n\nYou are ${self}. You cannot vote for yourself.` : ""}`
+        const voterPrompt = `${prompt}${self ? `\n\nYou are ${self}. You may vote for yourself.` : ""}`
           + `\n\n# Eligible voting targets\n${candidateList}`
           + "\n\nRespond with: VOTE: CANDIDATE_[number] - [Reason]"
           + (this.settings.allowDrawVote ? "\nIf no side deserves to win, respond with: VOTE: DRAW - [Reason]" : "");
-        result = this.parseVote(voter, await this.stream(voter, voterPrompt), eligibleConclusions);
+        result = this.parseVote(voter, await this.stream(voter, voterPrompt), conclusions);
       } catch (error) {
         if (this.abortController?.signal.aborted) throw error;
         result = { voterId: voter.id, voterDisplayName: voter.displayName, votedForId: "", votedForDisplayName: "(error)", reason: String(error) };

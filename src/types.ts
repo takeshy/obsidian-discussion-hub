@@ -64,7 +64,8 @@ export interface DiscussionVoter extends DiscussionProviderRef {
   id: string;
   displayName: string;
   privateInstruction?: string;
-  excludedParticipantId?: string;
+  /** The participant this voter is, when it sits in the discussion itself. Self-votes stay allowed. */
+  selfParticipantId?: string;
 }
 
 export interface DiscussionResponse {

@@ -174,7 +174,7 @@ export class DiscussionView extends ItemView {
     if (this.activityMode === "discussion") {
       this.renderPeopleSection(root, "Vote participants", this.discussionPlugin.settings.voters, models, true);
     } else if (this.activityMode === "keyword-wolf") {
-      root.createEl("p", { cls: "discussion-hub-voter-note", text: "Every player votes, and nobody can vote for themselves." });
+      root.createEl("p", { cls: "discussion-hub-voter-note", text: "Every player votes, and may vote for themselves." });
     }
 
     const actions = root.createDiv({ cls: "discussion-hub-actions" });
@@ -252,6 +252,7 @@ export class DiscussionView extends ItemView {
     let voters = this.discussionPlugin.settings.voters.map((item) => ({ ...item }));
     let settings: DiscussionRunSettings = { ...this.discussionPlugin.settings, activityMode: this.activityMode };
     let keywordWolfReveal = "";
+    let wolfId = "";
     if (this.activityMode === "riddle") {
       settings = {
         ...settings,
@@ -274,8 +275,9 @@ export class DiscussionView extends ItemView {
         modelId: participant.modelId,
         displayName: participant.displayName,
         privateInstruction: participant.role,
-        excludedParticipantId: participant.id,
+        selfParticipantId: participant.id,
       }));
+      wolfId = participants[wolfIndex].id;
       keywordWolfReveal = `Majority keyword: ${selectedPair.majority}. The Keyword Wolf was ${participants[wolfIndex].displayName} (keyword: ${selectedPair.wolf}).`;
       settings = {
         ...settings,
@@ -286,7 +288,7 @@ export class DiscussionView extends ItemView {
           + " Never say your keyword verbatim. Give clues specific enough to be compared, watch for an answer that does not fit your own keyword,"
           + " and work out as the game goes on whether you are the odd one out. If you conclude that you are, avoid being identified; otherwise find the player who is.",
         conclusionPrompt: "Name the player you suspect is the Keyword Wolf and briefly explain your reasoning.",
-        votePrompt: "Vote for the player you believe is the Keyword Wolf.",
+        votePrompt: "Vote for the player you believe is the Keyword Wolf. If you have concluded that you are the wolf yourself, vote for yourself.",
         activityMode: "keyword-wolf",
       };
     }
@@ -345,7 +347,9 @@ export class DiscussionView extends ItemView {
     });
     try {
       const result = await engine.run(theme, turns, participants, voters);
-      result.keywordWolfReveal = keywordWolfReveal || undefined;
+      result.keywordWolfReveal = keywordWolfReveal
+        ? `${keywordWolfReveal} ${this.keywordWolfVerdict(result, wolfId)}`
+        : undefined;
       this.renderResult(output, result);
       stop.setText("Save as note");
       stop.onclick = () => void this.discussionPlugin.saveResult(result).then(async (file) => {
@@ -360,6 +364,21 @@ export class DiscussionView extends ItemView {
       stop.setText("Back");
       stop.onclick = () => { this.running = false; this.stopCurrent = null; void this.render(); };
     }
+  }
+
+  /** The wolf wins outright by naming itself while staying unnoticed, and loses once every other player names it. */
+  private keywordWolfVerdict(result: DiscussionResult, wolfId: string): string {
+    const wolfVoter = result.voters.find((voter) => voter.selfParticipantId === wolfId);
+    const namedItself = result.votes.some((vote) => vote.voterId === wolfVoter?.id && vote.votedForId === wolfId);
+    const others = result.votes.filter((vote) => vote.voterId !== wolfVoter?.id);
+    const named = others.filter((vote) => vote.votedForId === wolfId).length;
+    if (named === 0) {
+      return namedItself
+        ? "The Keyword Wolf wins outright: it named itself while nobody else did."
+        : "The Keyword Wolf escapes: nobody named it.";
+    }
+    if (named === others.length) return "The Keyword Wolf loses: every other player named it.";
+    return `The Keyword Wolf was named by ${named} of ${others.length} other players${namedItself ? ", so naming itself counted for nothing" : ""}.`;
   }
 
   private renderResult(output: HTMLElement, result: DiscussionResult): void {
