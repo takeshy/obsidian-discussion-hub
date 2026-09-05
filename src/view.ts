@@ -287,10 +287,11 @@ export class DiscussionView extends ItemView {
           + " Nobody is told which of the two they hold, including you."
           + " Never say your keyword verbatim. Give clues specific enough to be compared, watch for an answer that does not fit your own keyword,"
           + " and work out as the game goes on whether you are the odd one out."
-          + "\n\nHow the game is decided: the wolf wins outright if it votes for itself while no other player votes for it;"
-          + " a self-vote counts for nothing once another player has named the wolf; and the wolf loses when every other player votes for it."
+          + "\n\nHow the game is decided: the wolf wins outright if it votes for itself while no other player votes for it, and wins plainly if nobody votes for it at all;"
+          + " the game is a draw if only some of the other players vote for it; and the wolf loses when every other player votes for it."
+          + " A self-vote counts for nothing once another player has named the wolf."
           + " So if you conclude that you are the odd one out, stay unsuspected and then name yourself."
-          + " If you conclude that you are not, name the wolf and bring the other players with you."
+          + " If you conclude that you are not, name the wolf and bring every other player with you — anything short of that is only a draw."
           + "\n\nYou are playing as your own model, against the others. Play to win: your model's reputation is on the line.",
         conclusionPrompt: "Name the player you suspect is the Keyword Wolf and briefly explain your reasoning.",
         votePrompt: "Vote for the player you believe is the Keyword Wolf. If you have concluded that you are the wolf yourself, vote for yourself."
@@ -381,10 +382,10 @@ export class DiscussionView extends ItemView {
     if (named === 0) {
       return namedItself
         ? "The Keyword Wolf wins outright: it named itself while nobody else did."
-        : "The Keyword Wolf escapes: nobody named it.";
+        : "The Keyword Wolf wins: nobody named it.";
     }
     if (named === others.length) return "The Keyword Wolf loses: every other player named it.";
-    return `The Keyword Wolf was named by ${named} of ${others.length} other players${namedItself ? ", so naming itself counted for nothing" : ""}.`;
+    return `Draw: ${named} of ${others.length} other players named the Keyword Wolf, but not all of them${namedItself ? ", and naming itself counted for nothing" : ""}.`;
   }
 
   private renderResult(output: HTMLElement, result: DiscussionResult): void {
