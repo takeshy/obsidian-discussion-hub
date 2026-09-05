@@ -58,7 +58,7 @@ A social deduction game. Every player is given a secret keyword; one randomly ch
 - Every player votes for whoever they suspect, the wolf included, and may vote for themselves — naming yourself is how you claim you worked out that you are the wolf. The draw option does not apply.
 - The wolf wins outright when it names itself and no other player names it. Being named by someone else makes a self-vote count for nothing, and the wolf loses once every other player names it. The verdict is shown with the reveal and kept in the saved note.
 - The keywords and the wolf's identity are revealed once the vote is in, and are included in the saved note.
-- Requires at least two participants. Voters are derived automatically, so the Vote participants list is not used.
+- Requires at least three participants. Voters are derived automatically, so the Vote participants list is not used.
 
 ![Keyword Wolf in progress](docs/images/keyword-wolf.png)
 

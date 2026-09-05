@@ -246,7 +246,7 @@ export class DiscussionView extends ItemView {
     } else if (!theme) { new Notice("Enter a discussion theme."); return; }
     if (this.discussionPlugin.settings.participants.length === 0) { new Notice("Add at least one participant."); return; }
     if (this.activityMode === "discussion" && this.discussionPlugin.settings.voters.length === 0) { new Notice("Add at least one voter."); return; }
-    if (this.activityMode === "keyword-wolf" && this.discussionPlugin.settings.participants.length < 2) { new Notice("Keyword Wolf needs at least two participants."); return; }
+    if (this.activityMode === "keyword-wolf" && this.discussionPlugin.settings.participants.length < 3) { new Notice("Keyword Wolf needs at least three participants."); return; }
 
     let participants = this.discussionPlugin.settings.participants.map((item) => ({ ...item }));
     let voters = this.discussionPlugin.settings.voters.map((item) => ({ ...item }));
@@ -286,7 +286,12 @@ export class DiscussionView extends ItemView {
         systemPrompt: "You are playing Keyword Wolf. Every player holds a secret keyword: all but one share the same keyword, and one player — the wolf — holds a subtly different one."
           + " Nobody is told which of the two they hold, including you."
           + " Never say your keyword verbatim. Give clues specific enough to be compared, watch for an answer that does not fit your own keyword,"
-          + " and work out as the game goes on whether you are the odd one out. If you conclude that you are, avoid being identified; otherwise find the player who is.",
+          + " and work out as the game goes on whether you are the odd one out."
+          + "\n\nHow the game is decided: the wolf wins outright if it votes for itself while no other player votes for it;"
+          + " a self-vote counts for nothing once another player has named the wolf; and the wolf loses when every other player votes for it."
+          + " So if you conclude that you are the odd one out, stay unsuspected and then name yourself."
+          + " If you conclude that you are not, name the wolf and bring the other players with you."
+          + "\n\nYou are playing as your own model, against the others. Play to win: your model's reputation is on the line.",
         conclusionPrompt: "Name the player you suspect is the Keyword Wolf and briefly explain your reasoning.",
         votePrompt: "Vote for the player you believe is the Keyword Wolf. If you have concluded that you are the wolf yourself, vote for yourself.",
         activityMode: "keyword-wolf",

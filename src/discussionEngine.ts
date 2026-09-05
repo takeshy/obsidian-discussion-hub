@@ -257,7 +257,7 @@ export class DiscussionEngine {
     turnNumber: number,
     totalTurns: number,
   ): Promise<DiscussionResponse[]> {
-    if (participants.length < 2) throw new Error("Keyword Wolf requires at least two participants.");
+    if (participants.length < 3) throw new Error("Keyword Wolf requires at least three participants.");
     const history = this.keywordWolfHistory(theme, previousTurns);
     // The closing round is a one-on-one interrogation; every earlier round questions everyone.
     const specificTargetRound = totalTurns > 1 && turnNumber === totalTurns;
