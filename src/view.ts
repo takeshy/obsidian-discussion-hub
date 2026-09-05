@@ -132,7 +132,7 @@ export class DiscussionView extends ItemView {
         minority.value = this.minorityKeyword;
         minority.oninput = () => { this.minorityKeyword = minority.value; };
       }
-      root.createEl("p", { cls: "discussion-hub-subtitle", text: "One random player receives the wolf keyword. Every player, including You, sees only their own keyword." });
+      root.createEl("p", { cls: "discussion-hub-subtitle", text: "One random player receives the wolf keyword. Every player, including You, sees only their own keyword and is never told whether it is the majority one." });
     } else {
       const placeholder = this.activityMode === "riddle"
         ? "Enter a riddle, mystery, case, situation, or logic problem…"
@@ -174,7 +174,7 @@ export class DiscussionView extends ItemView {
     if (this.activityMode === "discussion") {
       this.renderPeopleSection(root, "Vote participants", this.discussionPlugin.settings.voters, models, true);
     } else if (this.activityMode === "keyword-wolf") {
-      root.createEl("p", { cls: "discussion-hub-voter-note", text: "Everyone except the Keyword Wolf votes." });
+      root.createEl("p", { cls: "discussion-hub-voter-note", text: "Every player votes, and nobody can vote for themselves." });
     }
 
     const actions = root.createDiv({ cls: "discussion-hub-actions" });
@@ -266,9 +266,9 @@ export class DiscussionView extends ItemView {
       const wolfIndex = Math.floor(Math.random() * participants.length);
       participants = participants.map((participant, index) => ({
         ...participant,
-        role: `${participant.role ? `${participant.role}\n` : ""}${index === wolfIndex ? "You are the Keyword Wolf." : "You are a majority player."} Your secret keyword: ${index === wolfIndex ? selectedPair.wolf : selectedPair.majority}. Never say it verbatim. Give subtle clues${index === wolfIndex ? " and avoid being identified" : " and identify the Keyword Wolf"}.`,
+        role: `${participant.role ? `${participant.role}\n` : ""}Your secret keyword: ${index === wolfIndex ? selectedPair.wolf : selectedPair.majority}.`,
       }));
-      voters = participants.filter((_, index) => index !== wolfIndex).map((participant) => ({
+      voters = participants.map((participant) => ({
         id: `keyword-wolf-voter-${participant.id}`,
         providerId: participant.providerId,
         modelId: participant.modelId,
@@ -281,9 +281,12 @@ export class DiscussionView extends ItemView {
         ...settings,
         enableVoting: true,
         allowDrawVote: false,
-        systemPrompt: "You are playing Keyword Wolf. Never reveal your secret keyword verbatim. Give subtle clues and identify the minority player.",
+        systemPrompt: "You are playing Keyword Wolf. Every player holds a secret keyword: all but one share the same keyword, and one player — the wolf — holds a subtly different one."
+          + " Nobody is told which of the two they hold, including you."
+          + " Never say your keyword verbatim. Give clues specific enough to be compared, watch for an answer that does not fit your own keyword,"
+          + " and work out as the game goes on whether you are the odd one out. If you conclude that you are, avoid being identified; otherwise find the player who is.",
         conclusionPrompt: "Name the player you suspect is the Keyword Wolf and briefly explain your reasoning.",
-        votePrompt: "Vote for the participant you believe is the Keyword Wolf.",
+        votePrompt: "Vote for the player you believe is the Keyword Wolf.",
         activityMode: "keyword-wolf",
       };
     }

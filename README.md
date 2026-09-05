@@ -32,7 +32,7 @@ You can also attach reference files to the discussion. Text references are inclu
 | --- | --- | --- |
 | Discussion | Turns → Conclusion → Voting | The configured voters pick the strongest conclusion |
 | Riddle & mystery | Turns → Final answers | None; every answer is kept |
-| Keyword Wolf | Question rounds → Voting | Every player except the wolf votes |
+| Keyword Wolf | Question rounds → Voting | Every player votes, the wolf included |
 
 ### Discussion
 
@@ -51,11 +51,11 @@ A collaborative mode for riddles, mysteries, cases, situation puzzles, and logic
 
 ### Keyword Wolf
 
-A social deduction game. Every player is given a secret keyword; one randomly chosen player — the wolf — is given a slightly different one. Nobody is told which of the two they hold.
+A social deduction game. Every player is given a secret keyword; one randomly chosen player — the wolf — is given a slightly different one. Nobody is told which of the two they hold, not even the wolf, so the game is as much about realising you are the odd one out as it is about spotting someone else.
 
 - Keywords come from 225 bundled pairs, or from a custom pair you type in.
 - In each round every player asks a question and the others answer. When there is more than one round, the final round is a one-on-one interrogation: each player picks a single opponent to question.
-- Everyone except the wolf votes for the player they suspect. Nobody can vote for themselves, and the draw option does not apply.
+- Every player votes for whoever they suspect, the wolf included. Nobody can vote for themselves, and the draw option does not apply.
 - The keywords and the wolf's identity are revealed once the vote is in, and are included in the saved note.
 - Requires at least two participants. Voters are derived automatically, so the Vote participants list is not used.
 
