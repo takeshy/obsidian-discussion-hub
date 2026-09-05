@@ -62,6 +62,8 @@ A social deduction game. Every player is given a secret keyword; one randomly ch
 
 ![Keyword Wolf in progress](docs/images/keyword-wolf.png)
 
+![The reveal and verdict at the end of a game](docs/images/keyword-wolf-result.png)
+
 ## Features
 
 - **Cross-plugin participants** — Mix models supplied by LLM Hub, Gemini Helper, and Local LLM Hub in one discussion.

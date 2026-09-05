@@ -62,6 +62,8 @@ Discussion Hub は、Obsidian で複数の AI モデルによる討論を行う�
 
 ![進行中の Keyword Wolf](docs/images/keyword-wolf.png)
 
+![終了時の公開と判定](docs/images/keyword-wolf-result.png)
+
 ## 機能
 
 - **プラグイン横断の参加者** — LLM Hub、Gemini Helper、Local LLM Hub が提供するモデルを同じ討論で組み合わせられます。
