@@ -59,6 +59,8 @@ A social deduction game. Every player is given a secret keyword; one randomly ch
 - The keywords and the wolf's identity are revealed once the vote is in, and are included in the saved note.
 - Requires at least two participants. Voters are derived automatically, so the Vote participants list is not used.
 
+![Keyword Wolf in progress](docs/images/keyword-wolf.png)
+
 ## Features
 
 - **Cross-plugin participants** — Mix models supplied by LLM Hub, Gemini Helper, and Local LLM Hub in one discussion.

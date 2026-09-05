@@ -59,6 +59,8 @@ Discussion Hub は、Obsidian で複数の AI モデルによる討論を行う�
 - 投票が終わるとキーワードとウルフの正体が公開され、保存したノートにも記録されます。
 - 参加者は2人以上必要です。投票者は自動的に決まるため、Vote participants の設定は使用しません。
 
+![進行中の Keyword Wolf](docs/images/keyword-wolf.png)
+
 ## 機能
 
 - **プラグイン横断の参加者** — LLM Hub、Gemini Helper、Local LLM Hub が提供するモデルを同じ討論で組み合わせられます。
